@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from pymongo.results import InsertManyResult, InsertOneResult
 
@@ -113,6 +114,30 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(client.find_class("position", {"x": 1}), p1)
         self.assertEqual(client.find_class("position", {"x": 4}), p2)
         self.assertFalse(client.find_class("position", {"x": 2}))
+
+    def test_dataclass_post_init(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class Position:
+            x: int
+            y: int
+            z: int
+
+            def __post_init__(self) -> None:
+                self.x = 20
+
+        p1 = Position(80, 22, 341)
+        self.assertEqual(p1.x, 20)
+        p1.insert()
+
+        self.assertFalse(client.find_class("position", {"x": 80}))
+        self.assertEqual(client.find_class("position", {"x": 20}), p1)
+
+        p2 = Position(1, 2, 3, _insert=True)
+        self.assertEqual(p2.x, 20)
+        self.assertEqual(len(client.find_classes("position", {"x": 20})), 2)
 
 
 if __name__ == "__main__":
