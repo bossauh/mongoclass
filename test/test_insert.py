@@ -1,5 +1,5 @@
 import unittest
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pymongo.results import InsertManyResult, InsertOneResult
 
@@ -138,6 +138,22 @@ class TestInsert(unittest.TestCase):
         p2 = Position(1, 2, 3, _insert=True)
         self.assertEqual(p2.x, 20)
         self.assertEqual(len(client.find_classes("position", {"x": 20})), 2)
+
+    def test_dataclass_field(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class Position:
+            x: int = field(default_factory=lambda: 200)
+            y: int = field(default_factory=lambda: 200)
+            z: int = field(default_factory=lambda: 200)
+
+        p1 = Position(420, 69)
+        self.assertEqual((p1.x, p1.y, p1.z), (420, 69, 200))
+        p1.insert()
+
+        self.assertEqual(client.find_class("position", {"x": 420}), p1)
 
 
 if __name__ == "__main__":
