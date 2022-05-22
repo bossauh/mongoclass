@@ -154,7 +154,7 @@ class MongoClassClient(MongoClient):
 
                     return (res, return_value)
 
-                def save(self, *args, **kwargs) -> Tuple[UpdateResult, object]:
+                def save(this, *args, **kwargs) -> Tuple[UpdateResult, object]:
                     """
                     Update this mongoclass document in the collection with the current state of the object.
 
@@ -179,8 +179,8 @@ class MongoClassClient(MongoClient):
                     `Tuple[UpdateResult, object]`
                     """
 
-                    data = self.as_json()
-                    return self.update({"$set": data}, *args, **kwargs)
+                    data = this.as_json()
+                    return this.update({"$set": data}, *args, **kwargs)
 
                 def as_json(this) -> dict:
 
