@@ -4,7 +4,12 @@ from typing import List, Optional, Tuple, Union
 
 from pymongo import MongoClient
 from pymongo.database import Database
-from pymongo.results import InsertManyResult, InsertOneResult, UpdateResult
+from pymongo.results import (
+    DeleteResult,
+    InsertManyResult,
+    InsertOneResult,
+    UpdateResult,
+)
 
 
 class MongoClassClient(MongoClient):
