@@ -158,6 +158,8 @@ class MongoClassClient(MongoClient):
                     """
                     Update this mongoclass document in the collection with the current state of the object.
 
+                    If this document doesn't exist yet, it will just call `.insert()`
+
                     Here's a comparison of `.save()` and `.update()` doing the same exact thing.
 
                     >>> # Using .update()
@@ -176,8 +178,11 @@ class MongoClassClient(MongoClient):
 
                     Returns
                     -------
-                    `Tuple[UpdateResult, object]`
+                    `Tuple[Union[UpdateResult, InsertResult], object]`
                     """
+
+                    if not this._mongodb_id:
+                        return (this.insert(), this)
 
                     data = this.as_json()
                     return this.update({"$set": data}, *args, **kwargs)
