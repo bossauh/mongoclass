@@ -121,7 +121,7 @@ class MongoClassClient(MongoClient):
                 ) -> Tuple[UpdateResult, object]:
 
                     """
-                    Update this mongoclass in the collection.
+                    Update this mongoclass document in the collection.
 
                     Parameters
                     ----------
