@@ -189,6 +189,24 @@ class MongoClassClient(MongoClient):
                     data = this.as_json()
                     return this.update({"$set": data}, *args, **kwargs)
 
+                def delete(this, *args, **kwargs) -> DeleteResult:
+                    """
+                    Delete this mongoclass in the collection.
+
+                    Parameters
+                    ----------
+                    `*args, **kwargs` :
+                        To be passed onto `Collection.delete_one`
+
+                    Returns
+                    -------
+                    `DeleteResult`
+                    """
+
+                    return this._mongodb_db[this._mongodb_collection].delete_one(
+                        {"_id": this._mongodb_id}, *args, **kwargs
+                    )
+
                 def as_json(this) -> dict:
 
                     """
