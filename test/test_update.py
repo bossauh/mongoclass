@@ -1,4 +1,6 @@
 import unittest
+from dataclasses import dataclass
+from typing import List
 
 from . import utils
 
@@ -53,6 +55,40 @@ class TestUpdate(unittest.TestCase):
         query = client.find_class("position", {"x": 1, "y": 2, "z": 3})
         self.assertTrue(query)
         self.assertEqual(query._mongodb_id, p2._mongodb_id)
+
+    def test_update_save(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class User:
+            name: str
+            age: int
+            skills: List[str]
+            country: str = "US"
+
+        john = User("John Howard", 21, ["programming"])
+        john.insert()
+
+        john_find = client.find_class("user", {"name": "John Howard"})
+        self.assertEqual(john_find, john)
+
+        # Update via save
+        john_find.age += 22
+        john_find.country = "UK"
+        john_find.skills.append("designing")
+
+        # Check and make sure object attributes actually updated locally that is
+        self.assertEqual(john_find.skills, ["programming", "designing"])
+
+        # Check and make sure it has not yet updated
+        self.assertEqual(client.find_class("user", {"name": "John Howard"}), john)
+
+        # Finally update and check if it did actually update
+        update_result, new_john = john_find.save(return_new=True)
+        self.assertEqual(update_result.modified_count, 1)
+        self.assertEqual(new_john, john_find)
+        self.assertNotEqual(new_john, john)
 
 
 if __name__ == "__main__":
