@@ -154,7 +154,9 @@ class MongoClassClient(MongoClient):
 
                     return (res, return_value)
 
-                def save(this, *args, **kwargs) -> Tuple[UpdateResult, object]:
+                def save(
+                    this, *args, **kwargs
+                ) -> Tuple[Union[UpdateResult, InsertOneResult], object]:
                     """
                     Update this mongoclass document in the collection with the current state of the object.
 
