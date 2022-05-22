@@ -185,7 +185,7 @@ class MongoClassClient(MongoClient):
                 def as_json(this) -> dict:
 
                     """
-                    Convert this document into a json serializable object. This would pop the mongodb related attributes. (_id, _mongodb_id, _mongodb_db, _mongodb_collection)
+                    Convert this mongoclass into a json serializable object. This would pop the mongodb related attributes. (_id, _mongodb_id, _mongodb_db, _mongodb_collection)
                     """
 
                     x = dataclasses.asdict(this)
