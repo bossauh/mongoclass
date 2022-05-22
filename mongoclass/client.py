@@ -115,7 +115,7 @@ class MongoClassClient(MongoClient):
                     `InsertOneResult`
                     """
 
-                    res = db[collection_name].insert_one(
+                    res = this._mongodb_db[this._mongodb_collection].insert_one(
                         this.as_json(), *args, **kwargs
                     )
                     this._mongodb_id = res.inserted_id
@@ -144,7 +144,7 @@ class MongoClassClient(MongoClient):
 
                     return_new = kwargs.pop("return_new", True)
 
-                    res = db[collection_name].update_one(
+                    res = this._mongodb_db[this._mongodb_collection].update_one(
                         {"_id": this._mongodb_id}, operation, *args, **kwargs
                     )
                     return_value = this
