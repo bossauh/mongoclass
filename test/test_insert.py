@@ -155,6 +155,15 @@ class TestInsert(unittest.TestCase):
 
         self.assertEqual(client.find_class("position", {"x": 420}), p1)
 
+    def test_save_insert(self) -> None:
+        client = utils.create_client()
+        User = utils.create_class("user", client)
+
+        john = User("John Howards", "john@gmail.com", 123)
+        result, _ = john.save()
+        self.assertIsInstance(result, InsertOneResult)
+        self.assertEqual(result.inserted_id, john._mongodb_id)
+
 
 if __name__ == "__main__":
     unittest.main()
