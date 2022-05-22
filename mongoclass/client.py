@@ -154,6 +154,34 @@ class MongoClassClient(MongoClient):
 
                     return (res, return_value)
 
+                def save(self, *args, **kwargs) -> Tuple[UpdateResult, object]:
+                    """
+                    Update this mongoclass document in the collection with the current state of the object.
+
+                    Here's a comparison of `.save()` and `.update()` doing the same exact thing.
+
+                    >>> # Using .update()
+                    >>> user.update({"$set": {"name": "Robert Downey"}})
+                    >>>
+                    >>> # Using .save()
+                    >>> user.name = "Rober Downey"
+                    >>> user.save()
+
+                    Under the hood, this is just calling .update() using the set operator.
+
+                    Parameters
+                    ----------
+                    `*args, **kwargs` :
+                        To be passed onto `.update()`
+
+                    Returns
+                    -------
+                    `Tuple[UpdateResult, object]`
+                    """
+
+                    data = self.as_json()
+                    return self.update({"$set": data}, *args, **kwargs)
+
                 def as_json(this) -> dict:
 
                     """
