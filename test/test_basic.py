@@ -86,7 +86,14 @@ class TestBasic(unittest.TestCase):
         self.assertEqual(coordinates._mongodb_db, client.default_database)
 
         # Check classes mapping
-        self.assertEqual(client.mapping, {default_database: {"position": Position}})
+        self.assertEqual(
+            client.mapping,
+            {
+                default_database: {
+                    "position": {"constructor": Position, "nested": False}
+                }
+            },
+        )
 
         ProfileObject = utils.create_class("user", client, "profile")
         john = ProfileObject("john howard", "john@gmail.com", 1234)
@@ -96,7 +103,12 @@ class TestBasic(unittest.TestCase):
         # Check classes mapping
         self.assertEqual(
             client.mapping,
-            {default_database: {"position": Position, "profile": ProfileObject}},
+            {
+                default_database: {
+                    "position": {"constructor": Position, "nested": False},
+                    "profile": {"constructor": ProfileObject, "nested": False},
+                }
+            },
         )
 
         # Provide a different database and check if that matches
@@ -108,8 +120,11 @@ class TestBasic(unittest.TestCase):
         self.assertDictEqual(
             client.mapping,
             {
-                default_database: {"position": Position, "profile": ProfileObject},
-                utils.DATABASES[2]: {"user": User},
+                default_database: {
+                    "position": {"constructor": Position, "nested": False},
+                    "profile": {"constructor": ProfileObject, "nested": False},
+                },
+                utils.DATABASES[2]: {"user": {"constructor": User, "nested": False}},
             },
         )
 
