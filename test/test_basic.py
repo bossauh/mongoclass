@@ -44,6 +44,9 @@ class TestBasic(unittest.TestCase):
             email: str
             metadata: Metadata
 
+            def message(self) -> None:
+                pass
+
         # Test for nested disbaled
         metadata = Metadata(NameInformation("Trevor", "Warts"))
         john = User("trevor@gmail.com", metadata)
