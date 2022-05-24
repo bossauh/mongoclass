@@ -249,7 +249,10 @@ class MongoClassClient(MongoClient):
             if db.name not in self.mapping:
                 self.mapping[db.name] = {}
 
-            self.mapping[db.name][collection_name] = Inner
+            self.mapping[db.name][collection_name] = {
+                "constructor": Inner,
+                "nested": nested,
+            }
             return Inner
 
         return wrapper
