@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from . import utils
 
@@ -22,6 +23,50 @@ class TestBasic(unittest.TestCase):
         self.assertEqual(client.default_database.name, "mongoclass")
         self.assertEqual(client.mapping, {})
         client.server_info()
+
+    def test_as_json(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class NameInformation:
+            first: str
+            last: str
+
+        @client.mongoclass()
+        @dataclass
+        class Metadata:
+            name: NameInformation
+
+        @client.mongoclass()
+        @dataclass
+        class User:
+            email: str
+            metadata: Metadata
+
+        # Test for nested disbaled
+        metadata = Metadata(NameInformation("Trevor", "Warts"))
+        john = User("trevor@gmail.com", metadata)
+        self.assertEqual(
+            john.as_json(), {"email": "trevor@gmail.com", "metadata": metadata}
+        )
+        self.assertEqual(
+            john.as_json(True),
+            {
+                "email": "trevor@gmail.com",
+                "metadata": {
+                    "_nest_collection": "metadata",
+                    "_nest_database": utils.DATABASES[0],
+                    "data": {
+                        "name": {
+                            "_nest_collection": "nameinformation",
+                            "_nest_database": utils.DATABASES[0],
+                            "data": {"first": "Trevor", "last": "Warts"},
+                        }
+                    },
+                },
+            },
+        )
 
     def test_decorator(self) -> None:
         client = utils.create_client()
