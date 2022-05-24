@@ -90,6 +90,33 @@ class TestUpdate(unittest.TestCase):
         self.assertEqual(new_john, john_find)
         self.assertNotEqual(new_john, john)
 
+    def test_update_nested(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class NameInformation:
+            first: str
+            last: str
+
+        @client.mongoclass()
+        @dataclass
+        class Metadata:
+            name: NameInformation
+
+        @client.mongoclass(nested=True)
+        @dataclass
+        class User:
+            email: str
+            metadata: Metadata
+
+        scott = User("scott@gmail.com", Metadata(NameInformation("Scott", "Jones")))
+        scott.insert()
+        scott.metadata.name.last = "Dart"
+        update_result, new_object = scott.save()
+        self.assertEqual(update_result.modified_count, 1)
+        self.assertEqual(new_object.metadata.name.last, "Dart")
+
 
 if __name__ == "__main__":
     unittest.main()
