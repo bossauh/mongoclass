@@ -1,5 +1,6 @@
 import random
 import unittest
+from dataclasses import dataclass
 
 from . import utils
 
@@ -75,6 +76,37 @@ class TestFind(unittest.TestCase):
         result = client.find_class("coordinates", {"x": 1}, database=utils.DATABASES[1])
         self.assertTrue(result)
         self.assertEqual(result, pos)
+
+    def test_find_nested(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class NameInformation:
+            first: str
+            last: str
+
+        @client.mongoclass()
+        @dataclass
+        class Metadata:
+            name: NameInformation
+
+        @client.mongoclass(nested=True)
+        @dataclass
+        class User:
+            email: str
+            metadata: Metadata
+
+        metadata = Metadata(NameInformation("Trevor", "Warts"))
+        john = User("trevor@gmail.com", metadata)
+        insert_result = john.insert()
+        self.assertEqual(insert_result.inserted_id, john._mongodb_id)
+
+        # Find it
+        query = client.find_class("user", {"email": "trevor@gmail.com"})
+        self.assertEqual(query, john)
+        john.email = "x"
+        self.assertNotEqual(query, john)
 
 
 if __name__ == "__main__":
