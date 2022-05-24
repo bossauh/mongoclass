@@ -97,7 +97,6 @@ class MongoClassClient(MongoClient):
                     this._mongodb_collection = collection_name
                     this._mongodb_db = db
                     this._mongodb_id = kwargs.pop("_mongodb_id", None)
-                    this._nested = nested
 
                     _insert = kwargs.pop("_insert", insert_on_init)
                     super().__init__(*args, **kwargs)
@@ -229,7 +228,6 @@ class MongoClassClient(MongoClient):
                     x.pop("_mongodb_db", None)
                     x.pop("_mongodb_id", None)
                     x.pop("_id", None)
-                    x.pop("_nested", None)
 
                     if perform_nesting:
                         for k, v in copy.copy(x).items():
