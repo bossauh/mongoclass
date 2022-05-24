@@ -36,7 +36,9 @@ class MongoClassClient(MongoClient):
             return database
         return self[database]
 
-    def map_document(self, data: dict, collection: str, database: str) -> object:
+    def map_document(
+        self, data: dict, collection: str, database: str, force_nested: bool = False
+    ) -> object:
         """
         Map a raw document into a mongoclass.
 
@@ -48,12 +50,27 @@ class MongoClassClient(MongoClient):
             The collection this maps to. The collection then maps onto an actual mongoclass object.
         `database` : str
             The database the raw document belongs to.
+        `force_nested` : bool
+            Forcefully tell mongoclass that this document is a nested document and it contains other mongoclasses inside it. Defaults to False. Usually this parameter is only set in a recursive manner.
         """
 
-        # TODO Support nested
+        cls = self.mapping[database][collection]
+        if cls["nested"] or force_nested:
+            for k, v in copy.copy(data).items():
+                if isinstance(v, dict):
+                    if "_nest_collection" in v:
+                        data[k] = self.map_document(
+                            v["data"],
+                            v["_nest_collection"],
+                            v["_nest_database"],
+                            force_nested=True,
+                        )
 
-        data["_mongodb_id"] = data.pop("_id", None)
-        return self.mapping[database][collection](**data)
+        _id = data.pop("_id", None)
+        if _id:
+            data["_mongodb_id"] = _id
+
+        return cls["constructor"](**data)
 
     def mongoclass(
         self,
