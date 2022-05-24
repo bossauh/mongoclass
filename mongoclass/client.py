@@ -1,3 +1,4 @@
+import copy
 import dataclasses
 import functools
 from typing import List, Optional, Tuple, Union
@@ -59,6 +60,7 @@ class MongoClassClient(MongoClient):
         collection: str = None,
         database: Union[str, Database] = None,
         insert_on_init: bool = False,
+        nested: bool = False,
     ):
 
         """
@@ -75,6 +77,9 @@ class MongoClassClient(MongoClient):
             Whether to automatically insert a mongoclass into mongodb whenever a mongoclass instance is created.
             Defaults to False. This is the equivalent of passing `_insert=True` every time you create a mongoclass instance.
             This can also be overwritten by setting `_insert=False`
+        `nested` : bool
+            Whether this mongoclass has other mongoclasses inside it. Nesting is not automatically determined for performance purposes. Defaults to False.
+
         """
         db = self.__choose_database(database)
 
@@ -212,17 +217,33 @@ class MongoClassClient(MongoClient):
                         {"_id": this._mongodb_id}, *args, **kwargs
                     )
 
-                def as_json(this) -> dict:
+                def as_json(this, perform_nesting: bool = nested) -> dict:
 
                     """
-                    Convert this mongoclass into a json serializable object.
+                    Convert this mongoclass into a json serializable object. This will pop mongodb and mongoclass reserved attributes such as _mongodb_id, _mongodb_collection, etc.
                     """
 
-                    x = dataclasses.asdict(this)
-                    x.pop("_mongodb_id", None)
-                    x.pop("_mongodb_db", None)
+                    x = copy.copy(this.__dict__)
                     x.pop("_mongodb_collection", None)
+                    x.pop("_mongodb_db", None)
+                    x.pop("_mongodb_id", None)
                     x.pop("_id", None)
+
+                    if perform_nesting:
+                        for k, v in copy.copy(x).items():
+                            if dataclasses.is_dataclass(v):
+                                as_json_method = None
+                                try:
+                                    as_json_method = getattr(v, "as_json")
+                                except AttributeError:
+                                    pass
+                                if as_json_method:
+                                    x[k] = {
+                                        "data": as_json_method(perform_nesting),
+                                        "_nest_collection": v._mongodb_collection,
+                                        "_nest_database": v._mongodb_db.name,
+                                    }
+
                     return x
 
             if db.name not in self.mapping:
