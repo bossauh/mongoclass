@@ -1,1 +1,1 @@
-from .client import MongoClassClient
+from .client import MongoClassClient, client_constructor
