@@ -3,15 +3,10 @@ import dataclasses
 import functools
 from typing import List, Optional, Tuple, Union
 
+import pymongo.results
 from mongita import MongitaClientDisk, MongitaClientMemory
 from pymongo import MongoClient
 from pymongo.database import Database
-from pymongo.results import (
-    DeleteResult,
-    InsertManyResult,
-    InsertOneResult,
-    UpdateResult,
-)
 
 
 def client_constructor(engine: str, *args, **kwargs):
@@ -137,7 +132,9 @@ def client_constructor(engine: str, *args, **kwargs):
                         if _insert:
                             this.insert()
 
-                    def insert(this, *args, **kwargs) -> InsertOneResult:
+                    def insert(
+                        this, *args, **kwargs
+                    ) -> pymongo.results.InsertOneResult:
 
                         """
                         Insert this mongoclass as a document in the collection.
@@ -160,7 +157,7 @@ def client_constructor(engine: str, *args, **kwargs):
 
                     def update(
                         this, operation: dict, *args, **kwargs
-                    ) -> Tuple[UpdateResult, object]:
+                    ) -> Tuple[pymongo.results.UpdateResult, object]:
 
                         """
                         Update this mongoclass document in the collection.
@@ -198,7 +195,13 @@ def client_constructor(engine: str, *args, **kwargs):
 
                     def save(
                         this, *args, **kwargs
-                    ) -> Tuple[Union[UpdateResult, InsertOneResult], object]:
+                    ) -> Tuple[
+                        Union[
+                            pymongo.results.UpdateResult,
+                            pymongo.results.InsertOneResult,
+                        ],
+                        object,
+                    ]:
                         """
                         Update this mongoclass document in the collection with the current state of the object.
 
@@ -231,7 +234,7 @@ def client_constructor(engine: str, *args, **kwargs):
                         data = this.as_json()
                         return this.update({"$set": data}, *args, **kwargs)
 
-                    def delete(this, *args, **kwargs) -> DeleteResult:
+                    def delete(this, *args, **kwargs) -> pymongo.results.DeleteResult:
                         """
                         Delete this mongoclass in the collection.
 
@@ -357,7 +360,11 @@ def client_constructor(engine: str, *args, **kwargs):
 
         def insert_classes(
             self, mongoclasses: Union[object, List[object]], *args, **kwargs
-        ) -> Union[InsertOneResult, InsertManyResult, List[InsertOneResult]]:
+        ) -> Union[
+            pymongo.results.InsertOneResult,
+            pymongo.results.InsertManyResult,
+            List[pymongo.results.InsertOneResult],
+        ]:
             """
             Insert a mongoclass or a list of mongoclasses into its respective collection and database. This method can accept mongoclasses with different collections and different databases as long as `insert_one` is `True`.
 
