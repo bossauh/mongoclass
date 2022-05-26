@@ -18,11 +18,11 @@ def drop_database(database: str = None) -> None:
             client.drop_database(d)
 
 
-def create_client() -> MongoClassClient:
+def create_client():
     return MongoClassClient(host=HOST, default_db_name=DATABASES[0])
 
 
-def create_class(cls: str, client: MongoClassClient, *args, **kwargs):
+def create_class(cls: str, client, *args, **kwargs):
 
     if cls == "user":
 
