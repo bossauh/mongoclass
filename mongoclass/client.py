@@ -3,10 +3,11 @@ import dataclasses
 import functools
 from typing import List, Optional, Tuple, Union
 
+import mongita.database
+import pymongo.database
 import pymongo.results
 from mongita import MongitaClientDisk, MongitaClientMemory
 from pymongo import MongoClient
-from pymongo.database import Database
 
 
 def client_constructor(engine: str, *args, **kwargs):
@@ -39,10 +40,14 @@ def client_constructor(engine: str, *args, **kwargs):
             # Determine engine being used
             self._engine_used = engine
 
-        def __choose_database(self, database: Union[str, Database] = None) -> Database:
+        def __choose_database(
+            self, database: Union[str, pymongo.database.Database] = None
+        ) -> pymongo.database.Database:
             if database is None:
                 return self.default_database
-            if isinstance(database, Database):
+            if isinstance(
+                database, (pymongo.database.Database, mongita.database.Database)
+            ):
                 return database
             return self[database]
 
@@ -85,7 +90,7 @@ def client_constructor(engine: str, *args, **kwargs):
         def mongoclass(
             self,
             collection: str = None,
-            database: Union[str, Database] = None,
+            database: Union[str, pymongo.database.Database] = None,
             insert_on_init: bool = False,
             nested: bool = False,
         ):
@@ -296,7 +301,7 @@ def client_constructor(engine: str, *args, **kwargs):
             self,
             collection: str,
             *args,
-            database: Union[str, Database] = None,
+            database: Union[str, pymongo.database.Database] = None,
             **kwargs,
         ) -> Optional[object]:
 
@@ -330,7 +335,7 @@ def client_constructor(engine: str, *args, **kwargs):
             self,
             collection: str,
             *args,
-            database: Union[str, Database] = None,
+            database: Union[str, pymongo.database.Database] = None,
             **kwargs,
         ) -> List[object]:
 
