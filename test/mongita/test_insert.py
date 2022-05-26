@@ -1,9 +1,11 @@
 import unittest
 from dataclasses import dataclass, field
 
-from pymongo.results import InsertManyResult, InsertOneResult
+import pymongo.results
 
-from . import utils
+import mongita.results
+
+from .. import utils
 
 
 class TestInsert(unittest.TestCase):
@@ -16,7 +18,7 @@ class TestInsert(unittest.TestCase):
         utils.drop_database()
 
     def test_insert(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
 
         User = utils.create_class("user", client)
 
@@ -25,7 +27,10 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(john.country, "PH")
         self.assertFalse(john._mongodb_id)
         insert_res = john.insert()
-        self.assertIsInstance(insert_res, InsertOneResult)
+        self.assertIsInstance(
+            insert_res,
+            (pymongo.results.InsertOneResult, mongita.results.InsertOneResult),
+        )
         self.assertEqual(john._mongodb_id, insert_res.inserted_id)
 
         # Insert Kenneth
@@ -33,7 +38,10 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(kenneth.country, "US")
         self.assertFalse(kenneth._mongodb_id)
         insert_res = kenneth.insert()
-        self.assertIsInstance(insert_res, InsertOneResult)
+        self.assertIsInstance(
+            insert_res,
+            (pymongo.results.InsertOneResult, mongita.results.InsertOneResult),
+        )
         self.assertEqual(kenneth._mongodb_id, insert_res.inserted_id)
 
         # Insert Tony
@@ -41,7 +49,10 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(tony.country, "US")
         self.assertFalse(tony._mongodb_id)
         insert_res = tony.insert()
-        self.assertIsInstance(insert_res, InsertOneResult)
+        self.assertIsInstance(
+            insert_res,
+            (pymongo.results.InsertOneResult, mongita.results.InsertOneResult),
+        )
         self.assertEqual(tony._mongodb_id, insert_res.inserted_id)
 
         # Make sure the _id and other stuff are not in the as_json
@@ -63,20 +74,23 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(insert_result.inserted_id, joe._mongodb_id)
 
     def test_auto_insert(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client)
 
         self.assertTrue(Position(1, 2, 3, _insert=True)._mongodb_id)
         self.assertTrue(client.find_class("position", {"x": 1}))
 
     def test_insert_classes(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client)
 
         # Insert One
         pos = Position(1, 2, 3)
         insert_result = client.insert_classes(pos)
-        self.assertIsInstance(insert_result, InsertOneResult)
+        self.assertIsInstance(
+            insert_result,
+            (pymongo.results.InsertOneResult, mongita.results.InsertOneResult),
+        )
         self.assertEqual(insert_result.inserted_id, pos._mongodb_id)
 
         # Insert many but with insert_one=True
@@ -89,12 +103,15 @@ class TestInsert(unittest.TestCase):
         # Insert many but with insert_one=False
         pos = [Position(1, 2, 3), Position(4, 5, 6)]
         insert_result = client.insert_classes(pos)
-        self.assertIsInstance(insert_result, InsertManyResult)
+        self.assertIsInstance(
+            insert_result,
+            (pymongo.results.InsertManyResult, mongita.results.InsertManyResult),
+        )
         for x, y in zip(pos, insert_result.inserted_ids):
             self.assertEqual(x._mongodb_id, y)
 
     def test_insert_same_data(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client)
 
         p1 = Position(1, 2, 3)
@@ -105,7 +122,7 @@ class TestInsert(unittest.TestCase):
         self.assertNotEqual(i1.inserted_id, i2.inserted_id)
 
     def test_insert_auto_by_default(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client, insert_on_init=True)
 
         p1 = Position(1, 2, 3)
@@ -116,7 +133,7 @@ class TestInsert(unittest.TestCase):
         self.assertFalse(client.find_class("position", {"x": 2}))
 
     def test_dataclass_post_init(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
 
         @client.mongoclass()
         @dataclass
@@ -140,7 +157,7 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(len(client.find_classes("position", {"x": 20})), 2)
 
     def test_dataclass_field(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
 
         @client.mongoclass()
         @dataclass
@@ -156,12 +173,14 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(client.find_class("position", {"x": 420}), p1)
 
     def test_save_insert(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         User = utils.create_class("user", client)
 
         john = User("John Howards", "john@gmail.com", 123)
         result, _ = john.save()
-        self.assertIsInstance(result, InsertOneResult)
+        self.assertIsInstance(
+            result, (pymongo.results.InsertOneResult, mongita.results.InsertOneResult)
+        )
         self.assertEqual(result.inserted_id, john._mongodb_id)
 
 

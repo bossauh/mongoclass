@@ -2,7 +2,7 @@ import unittest
 from dataclasses import dataclass
 from typing import List
 
-from . import utils
+from .. import utils
 
 
 class TestUpdate(unittest.TestCase):

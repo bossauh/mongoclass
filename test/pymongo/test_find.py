@@ -2,7 +2,7 @@ import random
 import unittest
 from dataclasses import dataclass
 
-from . import utils
+from .. import utils
 
 
 class TestFind(unittest.TestCase):

@@ -1,8 +1,9 @@
 import unittest
 
-from pymongo.results import DeleteResult
+import mongita.results
+import pymongo.results
 
-from . import utils
+from .. import utils
 
 
 class TestDelete(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestDelete(unittest.TestCase):
         utils.drop_database()
 
     def test_mongoclass_delete(self) -> None:
-        client = utils.create_client()
+        client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client)
 
         p1 = Position(50, 20, 30)
@@ -23,7 +24,9 @@ class TestDelete(unittest.TestCase):
         p1.insert()
 
         delete_result = p1.delete()
-        self.assertIsInstance(delete_result, DeleteResult)
+        self.assertIsInstance(
+            delete_result, (pymongo.results.DeleteResult, mongita.results.DeleteResult)
+        )
         self.assertEqual(delete_result.deleted_count, 1)
 
         count = client.default_database.position.count_documents({"x": 50})
