@@ -1,10 +1,7 @@
 from distutils.core import setup
 from pathlib import Path
 
-install_requires = [
-    "pymongo==4.1.1",
-    "dnspython==2.2.1",
-]
+install_requires = ["dnspython==2.2.1", "mongita==1.1.1"]
 long_description = (Path(__file__).parent / "README.md").read_text()
 
 setup(
