@@ -27,7 +27,7 @@ class MongoClassClient(MongoClient):
     def __init__(self, default_db_name: str = "main", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.mapping = {}
-        self.default_database = self.get_default_database(default_db_name)
+        self.default_database = self[default_db_name]
 
     def __choose_database(self, database: Union[str, Database] = None) -> Database:
         if database is None:
