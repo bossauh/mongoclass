@@ -13,15 +13,15 @@ from pymongo import MongoClient
 def client_constructor(engine: str, *args, **kwargs):
 
     if engine == "pymongo":
-        engine_class = MongoClient
+        Engine = MongoClient
     elif engine == "mongita_disk":
-        engine_class = MongitaClientDisk
+        Engine = MongitaClientDisk
     elif engine == "mongita_memory":
-        engine_class = MongitaClientMemory
+        Engine = MongitaClientMemory
     else:
         raise ValueError(f"Invalid engine '{engine}'")
 
-    class MongoClassClient(engine_class):
+    class MongoClassClient(Engine):
 
         """
         Parameters
