@@ -9,6 +9,8 @@ import pymongo.results
 from mongita import MongitaClientDisk, MongitaClientMemory
 from pymongo import MongoClient
 
+from .cursor import Cursor
+
 
 def client_constructor(engine: str, *args, **kwargs):
 
@@ -337,10 +339,10 @@ def client_constructor(engine: str, *args, **kwargs):
             *args,
             database: Union[str, pymongo.database.Database] = None,
             **kwargs,
-        ) -> List[object]:
+        ) -> Cursor:
 
             """
-            Find multiple documents and convert each onto a mongoclass that maps to the collection of the document.
+            Find multiple documents and return a `Cursor` that you can iterate over that contains the documents as a mongoclass.
 
             Parameters
             ----------
@@ -355,13 +357,16 @@ def client_constructor(engine: str, *args, **kwargs):
 
             Returns
             -------
-            `List[object]` :
-                A list of mongoclasses containing the document's data.
+            `Cursor`:
+                A cursor similar to pymongo that you can iterate over to get the results.
             """
 
             db = self.__choose_database(database)
             query = db[collection].find(*args, **kwargs)
-            return [self.map_document(x, collection, db.name) for x in query]
+            cursor = Cursor(
+                query, self.map_document, collection, db.name, self._engine_used
+            )
+            return cursor
 
         def insert_classes(
             self, mongoclasses: Union[object, List[object]], *args, **kwargs
