@@ -2,6 +2,7 @@ import unittest
 from dataclasses import dataclass, field
 
 import mongita.results
+
 import pymongo.results
 
 from .. import utils
@@ -153,7 +154,7 @@ class TestInsert(unittest.TestCase):
 
         p2 = Position(1, 2, 3, _insert=True)
         self.assertEqual(p2.x, 20)
-        self.assertEqual(len(client.find_classes("position", {"x": 20})), 2)
+        self.assertEqual(len(list(client.find_classes("position", {"x": 20}))), 2)
 
     def test_dataclass_field(self) -> None:
         client = utils.create_client()

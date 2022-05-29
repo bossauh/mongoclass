@@ -55,7 +55,7 @@ class TestFind(unittest.TestCase):
 
         # Find all of those data
         positions = client.find_classes("position")
-        self.assertEqual(positions, pos)
+        self.assertEqual(list(positions), pos)
 
     def test_find_class_different_database(self) -> None:
         client = utils.create_client(engine="mongita_disk")
