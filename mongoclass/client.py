@@ -53,6 +53,25 @@ def client_constructor(engine: str, *args, **kwargs):
                 return database
             return self[database]
 
+        def get_db(
+            self, database: str
+        ) -> Union[pymongo.database.Database, mongita.database.Database]:
+            """
+            Get a database. Equivalent to `client["database"]`. This method exists simply because type hinting seems to be broken, nothing more.
+
+            Parameters
+            ----------
+            `database` : str
+                The name of the database.
+
+            Returns
+            -------
+            `Union[pymongo.database.Database, mongita.database.Database]` :
+                The `Database` object of the underlying engine.
+            """
+
+            return self[database]
+
         def map_document(
             self, data: dict, collection: str, database: str, force_nested: bool = False
         ) -> object:
