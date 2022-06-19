@@ -278,6 +278,62 @@ def client_constructor(engine: str, *args, **kwargs):
                             {"_id": this._mongodb_id}, *args, **kwargs
                         )
 
+                    @staticmethod
+                    def find_class(
+                        *args,
+                        database: Union[str, pymongo.database.Database] = None,
+                        **kwargs,
+                    ) -> Optional[object]:
+                        """
+                        Find a single document from this class and convert it onto a mongoclass that maps to the collection of the document.
+
+                        Parameters
+                        ----------
+                        `*args` :
+                            Arguments to pass onto `find_one`.
+                        `database` : Union[str, Database]
+                            The database to use. Defaults to the default database.
+                        `**kwargs` :
+                            Keyword arguments to pass onto `find_one`.
+
+                        Returns
+                        -------
+                        `Optional[object]` :
+                            The mongoclass containing the document's data if it exists.
+                        """
+
+                        return self.find_class(
+                            collection_name, *args, database, **kwargs
+                        )
+
+                    @staticmethod
+                    def find_classes(
+                        *args,
+                        database: Union[str, pymongo.database.Database] = None,
+                        **kwargs,
+                    ) -> Cursor:
+                        """
+                        Find multiple document from this class s and return a `Cursor` that you can iterate over that contains the documents as a mongoclass.
+
+                        Parameters
+                        ----------
+                        `*args` :
+                            Arguments to pass onto `find`.
+                        `database` : Union[str, Database]
+                            The database to use. Defaults to the default database.
+                        `**kwargs` :
+                            Keyword arguments to pass onto `find`.
+
+                        Returns
+                        -------
+                        `Cursor`:
+                            A cursor similar to pymongo that you can iterate over to get the results.
+                        """
+
+                        return self.find_classes(
+                            collection_name, *args, database, **kwargs
+                        )
+
                     def as_json(this, perform_nesting: bool = nested) -> dict:
 
                         """
