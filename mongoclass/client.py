@@ -290,20 +290,37 @@ def client_constructor(engine: str, *args, **kwargs):
                         x.pop("_mongodb_id", None)
                         x.pop("_id", None)
 
+                        def create_nest_data(v, as_json):
+                            return {
+                                "data": as_json(perform_nesting),
+                                "_nest_collection": v._mongodb_collection,
+                                "_nest_database": v._mongodb_db.name,
+                            }
+
+                        def get_as_json(v):
+                            method = None
+                            try:
+                                method = getattr(
+                                    v,
+                                    "as_json",
+                                )
+                            except AttributeError:
+                                pass
+                            return method
+
                         if perform_nesting:
                             for k, v in copy.copy(x).items():
                                 if dataclasses.is_dataclass(v):
-                                    as_json_method = None
-                                    try:
-                                        as_json_method = getattr(v, "as_json")
-                                    except AttributeError:
-                                        pass
+                                    as_json_method = get_as_json(v)
                                     if as_json_method:
-                                        x[k] = {
-                                            "data": as_json_method(perform_nesting),
-                                            "_nest_collection": v._mongodb_collection,
-                                            "_nest_database": v._mongodb_db.name,
-                                        }
+                                        x[k] = create_nest_data(v, as_json_method)
+
+                                elif isinstance(v, list):
+                                    for i, li in enumerate(v):
+                                        if dataclasses.is_dataclass(li):
+                                            as_json_method = get_as_json(li)
+                                            if as_json_method:
+                                                x[k][i] = create_nest_data(li, as_json_method)
 
                         return x
 
