@@ -39,6 +39,30 @@ class TestFind(unittest.TestCase):
         self.assertTrue(tony._mongodb_id)
         self.assertEqual(tony.name, "Tony Stark")
 
+    def test_find_class_using_class(self) -> None:
+        client = utils.create_client()
+        Position = utils.create_class("position", client)
+
+        pos = Position(50, 50, 50, _insert=True)
+        self.assertEqual(Position.find_class({"x": 50}), pos)
+
+    def test_find_classes_using_class(self) -> None:
+        client = utils.create_client()
+        Position = utils.create_class("position", client, "position_2")
+
+        # Create random data
+        pos = []
+        for _ in range(10):
+            d = Position(
+                random.randrange(2000, 4000),
+                random.randrange(2000, 4000),
+                random.randrange(2000, 4000),
+            )
+            d.insert()
+            pos.append(d)
+
+        self.assertEqual(list(Position.find_classes()), pos)
+
     def test_find_classes(self) -> None:
         client = utils.create_client(engine="mongita_disk")
         Position = utils.create_class("position", client)
