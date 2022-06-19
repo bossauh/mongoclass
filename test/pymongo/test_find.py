@@ -1,6 +1,7 @@
 import random
 import unittest
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
 
 from .. import utils
 
@@ -107,6 +108,58 @@ class TestFind(unittest.TestCase):
         self.assertEqual(query, john)
         john.email = "x"
         self.assertNotEqual(query, john)
+
+    def test_find_nested_list(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass()
+        @dataclass
+        class NameInformation:
+            first: str
+            last: str
+
+        @client.mongoclass()
+        @dataclass
+        class Metadata:
+            name: NameInformation
+            family_members: List[NameInformation]
+
+        @client.mongoclass(nested=True)
+        @dataclass
+        class User:
+            email: str
+            metadata: Metadata
+
+        family_members = [
+            NameInformation("Joe", "Dart"),
+            NameInformation("Cory", "Wong"),
+        ]
+        metadata = Metadata(NameInformation("Joey", "Dosik"), family_members)
+        user = User("chrisrocks@gmail.com", metadata)
+        insert_result = user.insert()
+        self.assertEqual(insert_result.inserted_id, user._mongodb_id)
+
+        query = client.find_class("user", {"email": "chrisrocks@gmail.com"})
+        self.assertEqual(query, user)
+
+    def test_find_nested_list_same_class(self) -> None:
+        client = utils.create_client()
+
+        @client.mongoclass(nested=True)
+        @dataclass
+        class Person:
+            name: str
+            family_members: List["Person"] = field(default_factory=lambda: [])
+
+        morbius = Person(
+            "I watch morbius on repeat",
+            [Person("Jared Leto"), Person("I'm going to morb")],
+        )
+        insert_result = morbius.insert()
+        self.assertEqual(insert_result.inserted_id, morbius._mongodb_id)
+
+        query = client.find_class("person", {"name": "I watch morbius on repeat"})
+        self.assertEqual(query, morbius)
 
 
 if __name__ == "__main__":
