@@ -320,7 +320,9 @@ def client_constructor(engine: str, *args, **kwargs):
                                         if dataclasses.is_dataclass(li):
                                             as_json_method = get_as_json(li)
                                             if as_json_method:
-                                                x[k][i] = create_nest_data(li, as_json_method)
+                                                x[k][i] = create_nest_data(
+                                                    li, as_json_method
+                                                )
 
                         return x
 
