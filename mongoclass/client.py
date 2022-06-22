@@ -101,6 +101,15 @@ def client_constructor(engine: str, *args, **kwargs):
                                 v["_nest_database"],
                                 force_nested=True,
                             )
+                    elif isinstance(v, list):
+                        for i, li in enumerate(v):
+                            if "_nest_collection" in li:
+                                data[k][i] = self.map_document(
+                                    li["data"],
+                                    li["_nest_collection"],
+                                    li["_nest_database"],
+                                    force_nested=True,
+                                )
 
             _id = data.pop("_id", None)
             if _id:
@@ -372,13 +381,16 @@ def client_constructor(engine: str, *args, **kwargs):
                                         x[k] = create_nest_data(v, as_json_method)
 
                                 elif isinstance(v, list):
-                                    for i, li in enumerate(v):
+                                    c = v.copy()
+                                    for i, li in enumerate(c):
                                         if dataclasses.is_dataclass(li):
                                             as_json_method = get_as_json(li)
                                             if as_json_method:
-                                                x[k][i] = create_nest_data(
+                                                c[i] = create_nest_data(
                                                     li, as_json_method
                                                 )
+
+                                    x[k] = c
 
                         return x
 
