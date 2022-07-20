@@ -288,6 +288,23 @@ def client_constructor(engine: str, *args, **kwargs):
                         )
 
                     @staticmethod
+                    def count_documents(*args, **kwargs) -> int:
+                        """
+                        Count the number of documents in this collection.
+
+                        Parameters
+                        ----------
+                        `*args, **kwargs` :
+                            To be passed onto `Collection.count_documents`
+
+                        Returns
+                        -------
+                        `int`
+                        """
+
+                        return db[collection_name].count_documents(*args, **kwargs)
+
+                    @staticmethod
                     def find_class(
                         *args,
                         database: Union[str, pymongo.database.Database] = None,
