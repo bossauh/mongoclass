@@ -28,7 +28,7 @@ class Cursor:
 
     def __next__(self):
         data = next(self.internal_cursor)
-        yield self.map_data(data)
+        return self.map_data(data)
 
     def __getitem__(self, index):
         return self.internal_cursor[index]
