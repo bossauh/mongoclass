@@ -1,9 +1,10 @@
 import copy
 import dataclasses
 import functools
-from typing import List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import mongita.database
+import mongita.results
 import pymongo.database
 import pymongo.results
 from mongita import MongitaClientDisk, MongitaClientMemory
@@ -23,7 +24,7 @@ def client_constructor(engine: str, *args, **kwargs):
     else:
         raise ValueError(f"Invalid engine '{engine}'")
 
-    class MongoClassClient(Engine):
+    class MongoClassClient(Engine):  # type: ignore
 
         """
         Parameters
@@ -37,14 +38,20 @@ def client_constructor(engine: str, *args, **kwargs):
         def __init__(self, default_db_name: str = "main", *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             self.mapping = {}
-            self.default_database = self[default_db_name]
+            self.default_database: Union[
+                pymongo.database.Database, mongita.database.Database
+            ] = self[default_db_name]
 
             # Determine engine being used
             self._engine_used = engine
 
         def __choose_database(
-            self, database: Union[str, pymongo.database.Database] = None
-        ) -> pymongo.database.Database:
+            self,
+            database: Optional[
+                Union[str, pymongo.database.Database, mongita.database.Database]
+            ] = None,
+        ) -> Union[pymongo.database.Database, mongita.database.Database]:
+
             if database is None:
                 return self.default_database
             if isinstance(
@@ -119,11 +126,11 @@ def client_constructor(engine: str, *args, **kwargs):
 
         def mongoclass(
             self,
-            collection: str = None,
-            database: Union[str, pymongo.database.Database] = None,
+            collection: Optional[str] = None,
+            database: Optional[Union[str, pymongo.database.Database]] = None,
             insert_on_init: bool = False,
             nested: bool = False,
-        ):
+        ) -> Callable:
 
             """
             A decorator used to map a dataclass onto a collection.
@@ -169,7 +176,9 @@ def client_constructor(engine: str, *args, **kwargs):
 
                     def insert(
                         this, *args, **kwargs
-                    ) -> pymongo.results.InsertOneResult:
+                    ) -> Union[
+                        pymongo.results.InsertOneResult, mongita.results.InsertOneResult
+                    ]:
 
                         """
                         Insert this mongoclass as a document in the collection.
@@ -192,7 +201,12 @@ def client_constructor(engine: str, *args, **kwargs):
 
                     def update(
                         this, operation: dict, *args, **kwargs
-                    ) -> Tuple[pymongo.results.UpdateResult, object]:
+                    ) -> Tuple[
+                        Union[
+                            pymongo.results.UpdateResult, mongita.results.UpdateResult
+                        ],
+                        object,
+                    ]:
 
                         """
                         Update this mongoclass document in the collection.
@@ -234,6 +248,8 @@ def client_constructor(engine: str, *args, **kwargs):
                         Union[
                             pymongo.results.UpdateResult,
                             pymongo.results.InsertOneResult,
+                            mongita.results.InsertOneResult,
+                            mongita.results.UpdateResult,
                         ],
                         object,
                     ]:
@@ -269,7 +285,11 @@ def client_constructor(engine: str, *args, **kwargs):
                         data = this.as_json()
                         return this.update({"$set": data}, *args, **kwargs)
 
-                    def delete(this, *args, **kwargs) -> pymongo.results.DeleteResult:
+                    def delete(
+                        this, *args, **kwargs
+                    ) -> Union[
+                        pymongo.results.DeleteResult, mongita.results.DeleteResult
+                    ]:
                         """
                         Delete this mongoclass in the collection.
 
@@ -307,7 +327,13 @@ def client_constructor(engine: str, *args, **kwargs):
                     @staticmethod
                     def find_class(
                         *args,
-                        database: Union[str, pymongo.database.Database] = None,
+                        database: Optional[
+                            Union[
+                                str,
+                                pymongo.database.Database,
+                                mongita.database.Database,
+                            ]
+                        ] = None,
                         **kwargs,
                     ) -> Optional[object]:
                         """
@@ -335,7 +361,13 @@ def client_constructor(engine: str, *args, **kwargs):
                     @staticmethod
                     def find_classes(
                         *args,
-                        database: Union[str, pymongo.database.Database] = None,
+                        database: Optional[
+                            Union[
+                                str,
+                                pymongo.database.Database,
+                                mongita.database.Database,
+                            ]
+                        ] = None,
                         **kwargs,
                     ) -> Cursor:
                         """
@@ -426,7 +458,9 @@ def client_constructor(engine: str, *args, **kwargs):
             self,
             collection: str,
             *args,
-            database: Union[str, pymongo.database.Database] = None,
+            database: Optional[
+                Union[str, pymongo.database.Database, mongita.database.Database]
+            ] = None,
             **kwargs,
         ) -> Optional[object]:
 
@@ -460,7 +494,9 @@ def client_constructor(engine: str, *args, **kwargs):
             self,
             collection: str,
             *args,
-            database: Union[str, pymongo.database.Database] = None,
+            database: Optional[
+                Union[str, pymongo.database.Database, mongita.database.Database]
+            ] = None,
             **kwargs,
         ) -> Cursor:
 
