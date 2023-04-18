@@ -159,6 +159,9 @@ def client_constructor(engine: str, *args, **kwargs):
                 @functools.wraps(cls, updated=())
                 class Inner(cls):
 
+                    COLLECTION_NAME = collection_name
+                    DATABASE_NAME = db.name
+
                     # pylint:disable=no-self-argument
                     def __init__(this, *args, **kwargs) -> None:
 
