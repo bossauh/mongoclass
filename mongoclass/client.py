@@ -379,6 +379,32 @@ def client_constructor(engine: str, *args, **kwargs):
                         )
 
                     @staticmethod
+                    def paginate(
+                        *args,
+                        database: Optional[
+                            Union[
+                                str,
+                                pymongo.database.Database,
+                                mongita.database.Database,
+                            ]
+                        ] = None,
+                        page: int,
+                        size: int,
+                        **kwargs,
+                    ) -> Cursor:
+                        skip = (page - 1) * size
+
+                        results = (
+                            self.find_classes(
+                                collection_name, *args, database, **kwargs
+                            )
+                            .skip(skip)
+                            .limit(size)
+                        )
+
+                        return results
+
+                    @staticmethod
                     def find_classes(
                         *args,
                         database: Optional[
