@@ -14,7 +14,6 @@ from .cursor import Cursor
 
 
 def client_constructor(engine: str, *args, **kwargs):
-
     if engine == "pymongo":
         Engine = MongoClient
     elif engine == "mongita_disk":
@@ -51,7 +50,6 @@ def client_constructor(engine: str, *args, **kwargs):
                 Union[str, pymongo.database.Database, mongita.database.Database]
             ] = None,
         ) -> Union[pymongo.database.Database, mongita.database.Database]:
-
             if database is None:
                 return self.default_database
             if isinstance(
@@ -59,6 +57,8 @@ def client_constructor(engine: str, *args, **kwargs):
             ):
                 return database
             return self[database]
+
+        choose_database = __choose_database
 
         def get_db(
             self, database: str
@@ -131,7 +131,6 @@ def client_constructor(engine: str, *args, **kwargs):
             insert_on_init: bool = False,
             nested: bool = False,
         ) -> Callable:
-
             """
             A decorator used to map a dataclass onto a collection.
             In other words, it converts the dataclass onto a mongoclass.
@@ -153,18 +152,15 @@ def client_constructor(engine: str, *args, **kwargs):
             db = self.__choose_database(database)
 
             def wrapper(cls):
-
                 collection_name = collection or cls.__name__.lower()
 
                 @functools.wraps(cls, updated=())
                 class Inner(cls):
-
                     COLLECTION_NAME = collection_name
                     DATABASE_NAME = db.name
 
                     # pylint:disable=no-self-argument
                     def __init__(this, *args, **kwargs) -> None:
-
                         # MongodDB Attributes
                         this._mongodb_collection = collection_name
                         this._mongodb_db = db
@@ -182,7 +178,6 @@ def client_constructor(engine: str, *args, **kwargs):
                     ) -> Union[
                         pymongo.results.InsertOneResult, mongita.results.InsertOneResult
                     ]:
-
                         """
                         Insert this mongoclass as a document in the collection.
 
@@ -210,7 +205,6 @@ def client_constructor(engine: str, *args, **kwargs):
                         ],
                         object,
                     ]:
-
                         """
                         Update this mongoclass document in the collection.
 
@@ -362,6 +356,29 @@ def client_constructor(engine: str, *args, **kwargs):
                         )
 
                     @staticmethod
+                    def aggregate(
+                        *args,
+                        database: Optional[
+                            Union[
+                                str,
+                                pymongo.database.Database,
+                                mongita.database.Database,
+                            ]
+                        ] = None,
+                        **kwargs,
+                    ) -> Cursor:
+                        db = self.choose_database(database)
+                        query = db[collection_name].aggregate(*args, **kwargs)
+
+                        return Cursor(
+                            query,
+                            self.map_document,
+                            collection_name,
+                            db.name,
+                            self._engine_used,
+                        )
+
+                    @staticmethod
                     def find_classes(
                         *args,
                         database: Optional[
@@ -396,7 +413,6 @@ def client_constructor(engine: str, *args, **kwargs):
                         )
 
                     def as_json(this, perform_nesting: bool = nested) -> dict:
-
                         """
                         Convert this mongoclass into a json serializable object. This will pop mongodb and mongoclass reserved attributes such as _mongodb_id, _mongodb_collection, etc.
                         """
@@ -466,7 +482,6 @@ def client_constructor(engine: str, *args, **kwargs):
             ] = None,
             **kwargs,
         ) -> Optional[object]:
-
             """
             Find a single document and convert it onto a mongoclass that maps to the collection of the document.
 
@@ -502,7 +517,6 @@ def client_constructor(engine: str, *args, **kwargs):
             ] = None,
             **kwargs,
         ) -> Cursor:
-
             """
             Find multiple documents and return a `Cursor` that you can iterate over that contains the documents as a mongoclass.
 
