@@ -110,7 +110,7 @@ def client_constructor(engine: str, *args, **kwargs):
                             )
                     elif isinstance(v, list):
                         for i, li in enumerate(v):
-                            if "_nest_collection" in li:
+                            if isinstance(li, dict) and "_nest_collection" in li:
                                 data[k][i] = self.map_document(
                                     li["data"],
                                     li["_nest_collection"],
