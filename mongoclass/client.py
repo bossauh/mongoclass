@@ -388,19 +388,21 @@ def client_constructor(engine: str, *args, **kwargs):
                                 mongita.database.Database,
                             ]
                         ] = None,
+                        pre_call: Optional[Callable] = None,
                         page: int,
                         size: int,
                         **kwargs,
                     ) -> Cursor:
                         skip = (page - 1) * size
 
-                        results = (
-                            self.find_classes(
-                                collection_name, *args, database, **kwargs
-                            )
-                            .skip(skip)
-                            .limit(size)
+                        cursor = self.find_classes(
+                            collection_name, *args, database, **kwargs
                         )
+
+                        if pre_call:
+                            cursor = pre_call(cursor)
+
+                        results = cursor.skip(skip).limit(size)
 
                         return results
 
